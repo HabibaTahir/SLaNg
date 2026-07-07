@@ -1603,10 +1603,19 @@ export function parseExpr(src) {
 
   function parseMulDiv() {
     let left = parsePow();
-    while (peek() === "*" || peek() === "/") {
-      const op = consume();
-      const right = parsePow();
-      left = op === "*" ? symMul(left, right) : symDiv(left, right);
+    while (true) {
+      const t = peek();
+      if (t === "*" || t === "/") {
+        const op = consume();
+        const right = parsePow();
+        left = op === "*" ? symMul(left, right) : symDiv(left, right);
+      } else if (t !== undefined && t !== "+" && t !== "-" && t !== ")" && t !== "^") {
+        // Implicit multiplication: e.g. "3x", "3x^2", "2(x+1)", "xy", "3sin(x)"
+        const right = parsePow();
+        left = symMul(left, right);
+      } else {
+        break;
+      }
     }
     return left;
   }
