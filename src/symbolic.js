@@ -427,6 +427,18 @@ function _isVar(expr, variable) {
  * @param {Object} expr
  * @returns {Object} Simplified expression
  */
+/**
+ * Flatten a (possibly nested) multiplication expression into a flat
+ * array of factors, e.g. mul(3, mul(2, x)) -> [3, 2, x].
+ * Non-mul expressions are returned as a single-element array.
+ */
+function _flattenMulFactors(expr) {
+  if (expr.type === "mul") {
+    return [..._flattenMulFactors(expr.left), ..._flattenMulFactors(expr.right)];
+  }
+  return [expr];
+}
+
 export function symSimplify(expr) {
   if (!expr) return expr;
 
@@ -455,15 +467,27 @@ export function symSimplify(expr) {
     case "mul": {
       const l = symSimplify(expr.left);
       const r = symSimplify(expr.right);
-      if (l.type === "const" && r.type === "const")
-        return symConst(l.value * r.value);
-      if (l.type === "const" && l.value === 0) return symConst(0);
-      if (r.type === "const" && r.value === 0) return symConst(0);
-      if (l.type === "const" && l.value === 1) return r;
-      if (r.type === "const" && r.value === 1) return l;
-      if (l.type === "const" && l.value === -1) return symNeg(r);
-      if (r.type === "const" && r.value === -1) return symNeg(l);
-      return symMul(l, r);
+
+      // Gather all multiplicative factors (handles nested muls like 3*(2*x))
+      const factors = [..._flattenMulFactors(l), ..._flattenMulFactors(r)];
+      let constProduct = 1;
+      const others = [];
+      for (const f of factors) {
+        if (f.type === "const") constProduct *= f.value;
+        else others.push(f);
+      }
+
+      if (constProduct === 0) return symConst(0);
+
+      const combined = others.reduce(
+        (acc, f) => (acc ? symMul(acc, f) : f),
+        null,
+      );
+
+      if (combined === null) return symConst(constProduct);
+      if (constProduct === 1) return combined;
+      if (constProduct === -1) return symNeg(combined);
+      return symMul(symConst(constProduct), combined);
     }
 
     case "div": {
@@ -512,6 +536,63 @@ export function symSimplify(expr) {
  * @param {Object} opts
  * @returns {string}
  */
+/**
+ * Convert a symbolic expression to a plain, human-readable math string
+ * (e.g. "3*cos(x)" instead of LaTeX "3\cos\!\left(x\right)").
+ * @param {Object} expr
+ * @returns {string}
+ */
+export function symToString(expr) {
+  switch (expr.type) {
+    case "const": {
+      if (expr.symbol === "\\pi") return "pi";
+      if (expr.symbol === "e") return "e";
+      if (expr.symbol === "\\infty") return "inf";
+      const v = expr.value;
+      return Number.isInteger(v) ? v.toString() : v.toPrecision(6).replace(/\.?0+$/, "");
+    }
+    case "var":
+      return expr.name;
+    case "neg": {
+      const inner = symToString(expr.arg);
+      const needsParen = expr.arg.type === "add" || expr.arg.type === "mul";
+      return `-${needsParen ? `(${inner})` : inner}`;
+    }
+    case "add": {
+      const l = symToString(expr.left);
+      const r = symToString(expr.right);
+      if (expr.right.type === "neg") {
+        return `${l} - ${symToString(expr.right.arg)}`;
+      }
+      return `${l} + ${r}`;
+    }
+    case "mul": {
+      const needsParen = (e) => e.type === "add" || e.type === "neg";
+      const l = symToString(expr.left);
+      const r = symToString(expr.right);
+      const lStr = needsParen(expr.left) ? `(${l})` : l;
+      const rStr = needsParen(expr.right) ? `(${r})` : r;
+      return `${lStr}*${rStr}`;
+    }
+    case "div": {
+      const needsParen = (e) => e.type === "add" || e.type === "neg";
+      const t = symToString(expr.top);
+      const b = symToString(expr.bot);
+      return `${needsParen(expr.top) ? `(${t})` : t}/${needsParen(expr.bot) ? `(${b})` : b}`;
+    }
+    case "pow": {
+      const needsParen = (e) => e.type !== "const" && e.type !== "var" && e.type !== "fn";
+      const b = symToString(expr.base);
+      const e2 = symToString(expr.exp);
+      return `${needsParen(expr.base) ? `(${b})` : b}^${e2}`;
+    }
+    case "fn":
+      return `${expr.name}(${symToString(expr.arg)})`;
+    default:
+      return "?";
+  }
+}
+
 export function symToLatex(expr, opts = {}) {
   switch (expr.type) {
     case "const": {
