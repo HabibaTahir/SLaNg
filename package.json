@@ -4,6 +4,7 @@
   "description": "Saad's Language for Analytical Numerics and Geometry — advanced symbolic mathematics, calculus, ODE/PDE solvers, linear algebra, statistics, and complex analysis. Zero dependencies. Pure JavaScript.",
   "type": "module",
   "main": "./main.js",
+  "types": "./slang-math.d.ts",
   "exports": {
     ".": "./main.js",
     "./basic": "./src/core/basic.js",
