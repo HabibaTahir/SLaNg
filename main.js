@@ -6,7 +6,7 @@ import {
     symDiff,        
     symIntegrate,  
     symSimplify,   
-    symToLatex      
+    symToString      
 } from './src/symbolic.js'; 
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -47,10 +47,7 @@ export function runSlangPipeline(userSlangInput) {
         const simplifiedAst = symSimplify(solvedAst);
         
         
-        let rawResult = symToLatex(simplifiedAst);
-        
-        
-        rawResult = rawResult.replace(/\s+/g, '');
+        let rawResult = symToString(simplifiedAst);
         
         return `🔥 Result: ${rawResult}`;
 
