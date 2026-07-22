@@ -1,0 +1,122 @@
+[
+  {
+    "intent": "derivative",
+    "module": "src/symbolic.js",
+    "function": "symDiff",
+    "args": ["expr", "variable"],
+    "returns": "SymExpr (not simplified — pass through symSimplify before display)",
+    "examples": [
+      "differentiate x^2 + 3x",
+      "find the derivative of sin(x) with respect to x",
+      "what's d/dx of 2x^3 - 5"
+    ]
+  },
+  {
+    "intent": "nth_derivative",
+    "module": "src/symbolic.js",
+    "function": "symNthDiff",
+    "args": ["expr", "variable", "n"],
+    "returns": "SymExpr (already simplified)",
+    "examples": [
+      "second derivative of x^3",
+      "find d²y/dx² of sin(x)",
+      "differentiate cos(x) 3 times"
+    ]
+  },
+  {
+    "intent": "integral_indefinite",
+    "module": "src/symbolic.js",
+    "function": "symIntegrate",
+    "args": ["expr", "variable"],
+    "returns": "SymExpr antiderivative without +C, or null if not recognized",
+    "examples": [
+      "integrate x^2 + 1",
+      "find the antiderivative of cos(x)",
+      "what is the integral of 1/x"
+    ]
+  },
+  {
+    "intent": "integral_definite",
+    "module": "src/symbolic.js",
+    "function": "symNumericalIntegrate",
+    "args": ["expr", "variable", "a", "b", "n"],
+    "returns": "number (Simpson's-rule numerical result)",
+    "examples": [
+      "integrate x^2 from 0 to 5",
+      "find the area under sin(x) between 0 and pi",
+      "evaluate the definite integral of 1/(1+x^2) from -1 to 1"
+    ]
+  },
+  {
+    "intent": "simplify",
+    "module": "src/symbolic.js",
+    "function": "symSimplify",
+    "args": ["expr"],
+    "returns": "SymExpr (simplified)",
+    "examples": [
+      "simplify 2x + 3x - 1",
+      "reduce (x^2 - 1)/(x - 1)",
+      "combine like terms in 3*2*x"
+    ]
+  },
+  {
+    "intent": "evaluate",
+    "module": "src/symbolic.js",
+    "function": "symEval",
+    "args": ["expr", "vars"],
+    "returns": "number",
+    "examples": [
+      "evaluate x^2 + 1 at x = 3",
+      "what is sin(x) when x is pi/2",
+      "plug in x=2 to 3x - 5"
+    ]
+  },
+  {
+    "intent": "taylor_series",
+    "module": "src/symbolic.js",
+    "function": "symTaylorSeries",
+    "args": ["expr", "variable", "center", "terms"],
+    "returns": "{ polynomial, coefficients, latex }",
+    "examples": [
+      "Taylor series of e^x around 0",
+      "Maclaurin series of sin(x)",
+      "expand cos(x) to 6 terms at x=0"
+    ]
+  },
+  {
+    "intent": "limit",
+    "module": "src/symbolic.js",
+    "function": "computeLimit",
+    "args": ["expr", "variable", "value", "maxHopital"],
+    "returns": "{ limit, method, exists, leftLimit?, rightLimit? }",
+    "examples": [
+      "limit of sin(x)/x as x approaches 0",
+      "find the limit of 1/x as x goes to infinity",
+      "what happens to (x^2-1)/(x-1) as x approaches 1"
+    ]
+  },
+  {
+    "intent": "gradient",
+    "module": "src/symbolic.js",
+    "function": "symGradient",
+    "args": ["expr", "variables"],
+    "returns": "{ [variableName]: SymExpr, ... }",
+    "examples": [
+      "find the gradient of x^2 + y^2",
+      "partial derivatives of x*y + sin(x)",
+      "compute the gradient for f = x^2*y - y^3"
+    ]
+  },
+  {
+    "intent": "convert_to_latex",
+    "module": "src/symbolic.js",
+    "function": "symToLatex",
+    "args": ["expr", "opts"],
+    "returns": "string (LaTeX)",
+    "examples": [
+      "convert x^2 + 1 to LaTeX",
+      "show me the LaTeX for sin(x)/cos(x)",
+      "what does 3x^2 look like in LaTeX"
+    ]
+  }
+]
